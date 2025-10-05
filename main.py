@@ -9,11 +9,41 @@
 import os
 import glob
 from datetime import datetime
+from dotenv import load_dotenv
 from pick import pick
 from parser import BookmarkParser
 from classifier import BookmarkClassifier
+from ai_classifier import AIBookmarkClassifier
 from organizer import BookmarkOrganizer
 from generator import BookmarkHTMLGenerator
+
+# 加载环境变量
+load_dotenv()
+
+
+def select_classification_mode():
+    """选择分类模式"""
+    # 检查是否配置了 AI
+    has_ai_config = os.getenv('OPENROUTER_API_KEY')
+
+    if not has_ai_config:
+        print("\n💡 未检测到 OPENROUTER_API_KEY，将使用规则分类")
+        return 'rules'
+
+    try:
+        options = [
+            ("🤖 AI 智能分类 (使用 OpenRouter)", 'ai'),
+            ("📏 规则分类 (基于域名和关键词)", 'rules')
+        ]
+
+        title = "\n🎯 请选择分类模式:\n"
+        selected, index = pick([opt[0] for opt in options], title, indicator="=>", default_index=0)
+
+        return options[index][1]
+
+    except KeyboardInterrupt:
+        print("\n\n👋 已取消")
+        return None
 
 
 def select_html_file():
@@ -52,6 +82,11 @@ def main():
     print("Chrome 书签智能整理工具")
     print("=" * 60)
 
+    # 选择分类模式
+    classification_mode = select_classification_mode()
+    if not classification_mode:
+        return
+
     # 选择输入文件
     input_file = select_html_file()
     if not input_file:
@@ -84,9 +119,20 @@ def main():
             print()
 
     # 2. 智能分类
-    print(f"\n🤖 正在智能分类...")
-    classifier = BookmarkClassifier()
-    classified = classifier.classify_batch(unique_bookmarks)
+    if classification_mode == 'ai':
+        try:
+            classifier = AIBookmarkClassifier()
+            classified = classifier.classify_batch(unique_bookmarks)
+        except Exception as e:
+            print(f"\n⚠️  AI 分类器初始化失败: {e}")
+            print("💡 降级使用规则分类...")
+            classifier = BookmarkClassifier()
+            print(f"\n📏 正在使用规则分类...")
+            classified = classifier.classify_batch(unique_bookmarks)
+    else:
+        classifier = BookmarkClassifier()
+        print(f"\n📏 正在使用规则分类...")
+        classified = classifier.classify_batch(unique_bookmarks)
 
     # 获取分类统计
     stats = classifier.get_category_stats(classified)
