@@ -36,18 +36,43 @@ class AIBookmarkClassifier:
 
     def _build_system_prompt(self) -> str:
         """构建系统提示词"""
-        return """书签智能分类助手。根据域名、标题、URL进行分类。
+        return """你是一个专业的书签分类助手。请根据书签的标题和URL，智能生成合适的分类。
 
-规则：
-1. 同域名必须同分类（如所有github.com都归"技术开发">"代码仓库"）
-2. 主分类10-20个，子分类≥3个书签时创建
-3. 必须为所有书签返回结果，不能遗漏
-4. 使用简洁中文命名
+核心规则：
+1. **域名一致性**：同一个域名的所有书签必须使用完全相同的分类（包括主分类和子分类）
+   - 例如：所有 github.com 都应该归到 {"main": "技术开发", "sub": "代码仓库"}
+   - 禁止同一域名分散在不同的分类中
 
-返回格式：
-{"results": [{"index": 0, "main": "主分类", "sub": "子分类或null"}]}
+2. **分类粒度**：
+   - 主分类：控制在10-20个，涵盖主要领域
+   - 子分类：当某类书签≥3个时才创建子分类
+   - 避免过细的分类（单个书签的独立分类）
 
-直接返回JSON，不要解释。"""
+3. **分类命名**：
+   - 使用简洁清晰的中文名称
+   - 主分类示例：技术开发、设计资源、工作相关、学习资料、效率工具
+   - 子分类根据具体内容细化
+
+4. **完整性**：必须为每个书签返回分类结果，不能遗漏任何书签
+
+常见域名参考：
+- github.com, stackoverflow.com → 技术开发
+- juejin.cn, v2ex.com, zhihu.com → 可作为独立子分类
+- feishu.cn, notion.so → 效率工具
+- figma.com, dribbble.com → 设计资源
+- youtube.com, bilibili.com → 视频娱乐
+
+返回格式（sub为可选，没有子分类时填null）：
+{
+  "results": [
+    {"no": 0, "main": "技术开发", "sub": "代码仓库"},
+    {"no": 1, "main": "技术开发", "sub": "技术社区"},
+    {"no": 2, "main": "设计资源", "sub": null}
+  ]
+}
+
+注意：直接返回JSON，不要添加任何解释文字。
+"""
 
     def classify(self, bookmark: Bookmark) -> Tuple[str, Optional[str]]:
         """
@@ -58,7 +83,6 @@ class AIBookmarkClassifier:
 
 标题: {bookmark.title}
 URL: {bookmark.url}
-域名: {bookmark.domain}
 
 请返回 JSON 格式的分类结果。"""
 
@@ -127,21 +151,20 @@ URL: {bookmark.url}
             bookmarks_data = []
             for idx, bm in enumerate(batch):
                 bookmarks_data.append({
-                    "index": batch_start + idx,
+                    "no": batch_start + idx,
                     "title": bm.title,
-                    "url": bm.url,
-                    "domain": bm.domain
+                    "url": bm.url
                 })
 
             user_message = f"""请分类以下 {len(batch)} 个书签，返回JSON格式：
 
 {json.dumps(bookmarks_data, ensure_ascii=False, indent=2)}
 
-请返回格式：
+请返回格式（sub为可选，没有子分类时填null）：
 {{
   "results": [
-    {{"index": 0, "main": "主分类", "sub": "子分类或null"}},
-    {{"index": 1, "main": "主分类", "sub": "子分类或null"}},
+    {{"no": 0, "main": "主分类", "sub": "子分类"}},
+    {{"no": 1, "main": "主分类", "sub": null}},
     ...
   ]
 }}"""
@@ -182,7 +205,7 @@ URL: {bookmark.url}
 
                 # 处理AI返回的结果
                 for result in results:
-                    idx = result.get('index', 0)
+                    idx = result.get('no', 0)
                     batch_idx = idx - batch_start
 
                     if batch_idx < 0 or batch_idx >= len(batch):
