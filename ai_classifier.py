@@ -5,7 +5,7 @@ from typing import List, Tuple, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 from parser import Bookmark
-from config import CATEGORIES, DEFAULT_CATEGORY
+from config import DEFAULT_CATEGORY
 
 # 加载环境变量
 load_dotenv()
@@ -15,8 +15,6 @@ class AIBookmarkClassifier:
     """基于 AI 的书签智能分类器"""
 
     def __init__(self):
-        self.categories = CATEGORIES
-
         # 初始化 OpenRouter 客户端
         api_key = os.getenv('OPENROUTER_API_KEY')
         if not api_key:
@@ -34,35 +32,34 @@ class AIBookmarkClassifier:
 
     def _build_system_prompt(self) -> str:
         """构建系统提示词"""
-        categories_desc = []
-
-        for main_cat, info in self.categories.items():
-            subcats = []
-            if 'subcategories' in info:
-                subcats = list(info['subcategories'].keys())
-
-            categories_desc.append(f"- {main_cat}: {', '.join(subcats) if subcats else '无子分类'}")
-
-        return f"""你是一个专业的书签分类助手。请根据书签的标题、URL和域名，将其分类到合适的类别中。
-
-可用的分类结构：
-{chr(10).join(categories_desc)}
+        return """你是一个专业的书签分类助手。请根据书签的标题、URL和域名，自动生成合适的分类。
 
 分类原则：
-1. 优先根据域名和 URL 内容判断
-2. 参考标题内容辅助判断
-3. 如果无法明确分类，返回"其他"
-4. 尽量使用子分类，使分类更加精确
+1. 根据书签的主题和用途创建分类名称（如：技术学习、工作相关、设计资源等）
+2. 为相似的书签使用相同的分类名称，保持一致性
+3. 可以创建子分类使分类更精确（如：技术学习 > 前端开发）
+4. 分类名称要简洁明确，使用中文
+5. 常见网站域名：
+   - github.com, stackoverflow.com → 技术学习
+   - juejin.cn, v2ex.com, zhihu.com → 可单独子分类
+   - feishu.cn → 工作相关
+   - dribbble.com, behance.net → 设计资源
+   - youtube.com, bilibili.com → 娱乐生活
 
 重要：
 - 直接返回JSON，不要添加任何解释或额外文字
-- 批量请求时，返回格式必须为：{{"results": [...]}}
 - 确保JSON格式完整、有效
+- 保持分类名称的一致性，相同类型的网站应使用相同的分类
 
-示例：
-- GitHub 仓库 → {{"main": "技术学习", "sub": "代码仓库"}}
-- 掘金文章 → {{"main": "技术学习", "sub": "掘金"}}
-- 知乎专栏 → {{"main": "技术学习", "sub": "知乎"}}
+返回格式示例：
+{
+  "results": [
+    {"index": 0, "main": "技术学习", "sub": "代码仓库"},
+    {"index": 1, "main": "技术学习", "sub": "掘金"},
+    {"index": 2, "main": "资讯媒体", "sub": "知乎"},
+    {"index": 3, "main": "设计资源", "sub": "设计工具"}
+  ]
+}
 """
 
     def classify(self, bookmark: Bookmark) -> Tuple[str, Optional[str]]:
@@ -111,16 +108,7 @@ URL: {bookmark.url}
             main_category = result.get('main', DEFAULT_CATEGORY)
             sub_category = result.get('sub')
 
-            # 验证分类是否有效
-            if main_category not in self.categories:
-                main_category = DEFAULT_CATEGORY
-                sub_category = None
-            elif sub_category:
-                # 验证子分类
-                valid_subs = self.categories.get(main_category, {}).get('subcategories', {})
-                if sub_category not in valid_subs:
-                    sub_category = None
-
+            # 不再验证分类，AI可以自由生成分类名称
             return main_category, sub_category
 
         except Exception as e:
@@ -216,15 +204,7 @@ URL: {bookmark.url}
                     main_category = result.get('main', DEFAULT_CATEGORY)
                     sub_category = result.get('sub')
 
-                    # 验证分类
-                    if main_category not in self.categories:
-                        main_category = DEFAULT_CATEGORY
-                        sub_category = None
-                    elif sub_category:
-                        valid_subs = self.categories.get(main_category, {}).get('subcategories', {})
-                        if sub_category not in valid_subs:
-                            sub_category = None
-
+                    # AI自由生成分类，不再验证
                     key = (main_category, sub_category)
                     if key not in classified:
                         classified[key] = []
