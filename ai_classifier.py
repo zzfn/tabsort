@@ -22,7 +22,11 @@ class AIBookmarkClassifier:
 
         self.client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
-            api_key=api_key
+            api_key=api_key,
+            default_headers={
+                "HTTP-Referer": "https://github.com/zzfn/tabsort",
+                "X-Title": "TabSort"
+            }
         )
 
         self.model = os.getenv('OPENROUTER_MODEL', 'anthropic/claude-3.5-sonnet')
@@ -32,35 +36,18 @@ class AIBookmarkClassifier:
 
     def _build_system_prompt(self) -> str:
         """构建系统提示词"""
-        return """你是一个专业的书签分类助手。请根据书签的标题、URL和域名，自动生成合适的分类。
+        return """书签智能分类助手。根据域名、标题、URL进行分类。
 
-分类原则：
-1. 根据书签的主题和用途创建分类名称（如：技术学习、工作相关、设计资源等）
-2. 为相似的书签使用相同的分类名称，保持一致性
-3. 可以创建子分类使分类更精确（如：技术学习 > 前端开发）
-4. 分类名称要简洁明确，使用中文
-5. 常见网站域名：
-   - github.com, stackoverflow.com → 技术学习
-   - juejin.cn, v2ex.com, zhihu.com → 可单独子分类
-   - feishu.cn → 工作相关
-   - dribbble.com, behance.net → 设计资源
-   - youtube.com, bilibili.com → 娱乐生活
+规则：
+1. 同域名必须同分类（如所有github.com都归"技术开发">"代码仓库"）
+2. 主分类10-20个，子分类≥3个书签时创建
+3. 必须为所有书签返回结果，不能遗漏
+4. 使用简洁中文命名
 
-重要：
-- 直接返回JSON，不要添加任何解释或额外文字
-- 确保JSON格式完整、有效
-- 保持分类名称的一致性，相同类型的网站应使用相同的分类
+返回格式：
+{"results": [{"index": 0, "main": "主分类", "sub": "子分类或null"}]}
 
-返回格式示例：
-{
-  "results": [
-    {"index": 0, "main": "技术学习", "sub": "代码仓库"},
-    {"index": 1, "main": "技术学习", "sub": "掘金"},
-    {"index": 2, "main": "资讯媒体", "sub": "知乎"},
-    {"index": 3, "main": "设计资源", "sub": "设计工具"}
-  ]
-}
-"""
+直接返回JSON，不要解释。"""
 
     def classify(self, bookmark: Bookmark) -> Tuple[str, Optional[str]]:
         """
@@ -182,25 +169,27 @@ URL: {bookmark.url}
 
                 result_text = result_text.strip()
 
-                # 解析 JSON - response_format 应该保证返回纯JSON
-                try:
-                    data = json.loads(result_text)
-                except json.JSONDecodeError as je:
-                    print(f"\n   ⚠️  JSON解析失败: {je}")
-                    print(f"   返回内容长度: {len(result_text)}")
-                    print(f"   返回内容前500字符: {result_text[:500]}")
-                    print(f"   finish_reason: {response.choices[0].finish_reason}")
-                    raise
-
+                # 解析 JSON
+                data = json.loads(result_text)
                 results = data.get('results', [])
 
-                # 处理结果
+                # 检查返回数量
+                if len(results) != len(batch):
+                    print(f"\n   ⚠️  AI返回数量不一致: 期望{len(batch)}个，实际{len(results)}个，未分类的将归入'未分类'")
+
+                # 记录已处理的索引
+                processed_indices = set()
+
+                # 处理AI返回的结果
                 for result in results:
                     idx = result.get('index', 0)
-                    if idx >= len(batch):
+                    batch_idx = idx - batch_start
+
+                    if batch_idx < 0 or batch_idx >= len(batch):
+                        print(f"\n   ⚠️  索引越界: {idx}，跳过")
                         continue
 
-                    bookmark = batch[idx - batch_start]
+                    bookmark = batch[batch_idx]
                     main_category = result.get('main', DEFAULT_CATEGORY)
                     sub_category = result.get('sub')
 
@@ -209,6 +198,18 @@ URL: {bookmark.url}
                     if key not in classified:
                         classified[key] = []
                     classified[key].append(bookmark)
+                    processed_indices.add(batch_idx)
+
+                # 处理未被AI分类的书签，归入"未分类"
+                missing_count = len(batch) - len(processed_indices)
+                if missing_count > 0:
+                    print(f"\n   📌 有 {missing_count} 个书签未分类，归入'未分类'")
+                    for i, bookmark in enumerate(batch):
+                        if i not in processed_indices:
+                            key = ("未分类", None)
+                            if key not in classified:
+                                classified[key] = []
+                            classified[key].append(bookmark)
 
             except Exception as e:
                 print(f"\n   ⚠️  批次分类失败: {str(e)}")
