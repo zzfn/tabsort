@@ -89,23 +89,7 @@ class BookmarkHTMLGenerator:
         lines.append("=" * 60)
         lines.append("书签整理预览")
         lines.append("=" * 60)
-        lines.append(f"总计: {self.root.get_total_count()} 个书签\n")
-
-        count = 0
-        for folder in self.root.subfolders:
-            if count >= max_folders:
-                lines.append(f"\n... 还有 {len(self.root.subfolders) - max_folders} 个分类")
-                break
-
-            lines.append(f"\n📁 {folder.name} ({folder.get_total_count()} 个书签)")
-
-            if folder.subfolders:
-                for subfolder in folder.subfolders[:3]:
-                    lines.append(f"  └─ 📁 {subfolder.name} ({subfolder.get_total_count()} 个)")
-                if len(folder.subfolders) > 3:
-                    lines.append(f"  └─ ... 还有 {len(folder.subfolders) - 3} 个子分类")
-
-            count += 1
-
-        lines.append("\n" + "=" * 60)
+        lines.append(f"总计: {self.root.get_total_count()} 个书签")
+        lines.append(f"分类数: {len(self.root.subfolders)} 个")
+        lines.append("=" * 60)
         return "\n".join(lines)
