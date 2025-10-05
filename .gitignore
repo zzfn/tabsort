@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 书签HTML文件（可能包含个人信息）
+*.html
+!README.html
+
+# 临时文件
+*.tmp
+*.bak
+
+/.idea/
