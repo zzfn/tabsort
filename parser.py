@@ -86,6 +86,43 @@ class BookmarkParser:
 
         return unique, duplicates
 
+    def find_hash_only_duplicates(self) -> List[tuple[str, List[Bookmark]]]:
+        """
+        查找只有hash不同的重复书签
+        返回: [(基础URL, [书签列表])] - 只返回有多个书签的组
+        """
+        from urllib.parse import urlparse, urlunparse
+
+        # 移除URL的hash部分
+        def remove_hash(url: str) -> str:
+            parsed = urlparse(url)
+            # 将hash部分设为空，重新组合URL
+            return urlunparse((
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                parsed.params,
+                parsed.query,
+                ''  # 移除fragment(hash)
+            ))
+
+        # 按无hash的URL分组
+        url_groups = {}
+        for bookmark in self.bookmarks:
+            base_url = remove_hash(bookmark.url)
+            if base_url not in url_groups:
+                url_groups[base_url] = []
+            url_groups[base_url].append(bookmark)
+
+        # 只返回有多个书签的组（即有重复的）
+        duplicates = [(url, bookmarks) for url, bookmarks in url_groups.items()
+                      if len(bookmarks) > 1]
+
+        # 按重复数量排序
+        duplicates.sort(key=lambda x: len(x[1]), reverse=True)
+
+        return duplicates
+
     def get_stats(self) -> Dict:
         """获取统计信息"""
         total = len(self.bookmarks)

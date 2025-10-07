@@ -118,6 +118,21 @@ def main():
             print(f"     URL: {dup.url}")
             print()
 
+    # 查找只有hash不同的重复
+    hash_duplicates = parser.find_hash_only_duplicates()
+    if hash_duplicates:
+        print(f"\n🔗 发现 {len(hash_duplicates)} 组只有hash不同的重复书签:")
+        print("=" * 60)
+        for base_url, bookmark_group in hash_duplicates:
+            print(f"\n📌 基础URL: {base_url}")
+            print(f"   重复数量: {len(bookmark_group)}")
+            print(f"   具体书签:")
+            for bm in bookmark_group:
+                title = bm.title[:50] if len(bm.title) > 50 else bm.title
+                print(f"     • {title}")
+                print(f"       完整URL: {bm.url}")
+            print("-" * 60)
+
     # 2. 智能分类
     if classification_mode == 'ai':
         try:
