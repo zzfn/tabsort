@@ -80,6 +80,14 @@ CATEGORIES = {
             "开发工具": {
                 "keywords": ["stackblitz", "codesandbox", "playground", "repl"],
                 "domains": ["stackblitz.com", "codesandbox.io", "replit.com"]
+            },
+            "下载工具": {
+                "keywords": ["download", "torrent", "下载", "motrix"],
+                "domains": ["motrix.app", "thepiratebay.org"]
+            },
+            "图片处理": {
+                "keywords": ["image", "photo", "picture", "图片", "截图"],
+                "domains": []
             }
         }
     },
@@ -138,17 +146,21 @@ CATEGORIES = {
             }
         }
     },
-    "AI工具": {
-        "keywords": ["ai", "gpt", "claude", "chatgpt", "openai", "anthropic", "perplexity"],
-        "domains": ["anthropic.com", "openai.com", "perplexity.ai", "siliconflow.cn"],
+    "AI": {
+        "keywords": ["ai", "gpt", "claude", "chatgpt", "openai", "anthropic", "perplexity", "llm", "人工智能", "机器学习", "gemini"],
+        "domains": ["anthropic.com", "openai.com", "perplexity.ai", "siliconflow.cn", "aiagenttoolkit.xyz", "ctok.ai", "vercel.ai", "langfuse.com"],
         "subcategories": {
             "AI对话": {
-                "keywords": ["chat", "gpt", "claude"],
-                "domains": ["anthropic.com", "openai.com", "perplexity.ai"]
+                "keywords": ["chat", "gpt", "claude", "chatgpt"],
+                "domains": ["anthropic.com", "openai.com", "perplexity.ai", "nio.feishu.cn"]
             },
             "AI绘图": {
-                "keywords": ["image", "draw", "midjourney", "stable", "ideogram"],
-                "domains": ["ideogram.ai", "craiyon.com"]
+                "keywords": ["image", "draw", "midjourney", "stable", "ideogram", "dalle"],
+                "domains": ["ideogram.ai", "craiyon.com", "designer.microsoft.com"]
+            },
+            "AI开发": {
+                "keywords": ["code", "编程", "开发", "claude code", "api", "ai tool", "ai playground"],
+                "domains": ["play.vercel.ai", "langfuse.com", "ctok.ai"]
             }
         }
     }

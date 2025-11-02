@@ -62,7 +62,7 @@ class AIBookmarkClassifier:
 
 4. **分类命名**：
    - 使用简洁清晰的中文名称
-   - 推荐的主分类参考：技术开发、设计资源、工作相关、学习资料、效率工具、金融投资、视频娱乐、新闻资讯、社交平台
+   - 推荐的主分类参考：技术开发、设计资源、工作相关、学习资料、AI、工具软件、金融投资、视频娱乐、新闻资讯、社交平台
    - 子分类根据具体内容细化
 
 5. **完整性**：必须为每个书签返回分类结果，不能遗漏任何书签
@@ -72,7 +72,7 @@ class AIBookmarkClassifier:
 - juejin.cn, v2ex.com → 技术开发 / 技术社区
 - binance.com, coinbase.com → 金融投资 / 数字货币
 - xueqiu.com, eastmoney.com → 金融投资 / 股票基金
-- feishu.cn, notion.so → 效率工具
+- feishu.cn, notion.so → 工具软件
 - figma.com, dribbble.com → 设计资源
 - youtube.com, bilibili.com → 视频娱乐
 

@@ -115,12 +115,21 @@ class BookmarkOrganizer:
         """
         优化文件夹结构
         - 如果子分类书签数量太少，合并到主分类
+        - 如果只有一个子分类，直接合并内容（平铺）
         """
         for category_name, folder in category_folders.items():
             if not folder.subfolders:
                 continue
 
-            # 检查每个子文件夹
+            # 优化1：如果只有一个子分类，直接合并内容（平铺）
+            if len(folder.subfolders) == 1:
+                # 直接将唯一子分类的内容合并到父分类
+                subfolder = folder.subfolders[0]
+                folder.bookmarks.extend(subfolder.bookmarks)
+                folder.subfolders.remove(subfolder)
+                continue
+
+            # 优化2：检查每个子文件夹，如果数量太少则合并到主分类
             to_merge = []
             for subfolder in folder.subfolders:
                 if len(subfolder.bookmarks) < MIN_CATEGORY_SIZE:
