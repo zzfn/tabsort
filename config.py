@@ -146,6 +146,33 @@ CATEGORIES = {
             }
         }
     },
+    "云服务器": {
+        "keywords": ["aws", "aliyun", "tencent cloud", "azure", "gcp", "vultr", "linode", "digitalocean", "cloudflare", "vercel", "netlify", "heroku", "阿里云", "腾讯云", "华为云", "ucloud", "vps", "ecs", "s3", "lambda", "serverless"],
+        "domains": ["aliyun.com", "console.aliyun.com", "cloud.tencent.com", "aws.amazon.com", "azure.microsoft.com", "cloud.google.com", "vultr.com", "linode.com", "digitalocean.com", "cloudflare.com", "vercel.com", "netlify.com", "heroku.com", "huaweicloud.com", "ucloud.cn"],
+        "url_patterns": ["cloud", "console", "server", "instance", "vpc"],
+        "subcategories": {
+            "阿里云": {
+                "keywords": ["aliyun", "阿里云"],
+                "domains": ["aliyun.com", "console.aliyun.com"]
+            },
+            "腾讯云": {
+                "keywords": ["tencent cloud", "腾讯云", "qcloud"],
+                "domains": ["cloud.tencent.com"]
+            },
+            "AWS": {
+                "keywords": ["aws", "amazon web services", "ec2", "s3", "lambda"],
+                "domains": ["aws.amazon.com", "console.aws.amazon.com"]
+            },
+            "Cloudflare": {
+                "keywords": ["cloudflare", "cf"],
+                "domains": ["cloudflare.com", "dash.cloudflare.com"]
+            },
+            "其他云平台": {
+                "keywords": ["azure", "gcp", "google cloud", "vultr", "linode", "digitalocean", "vercel", "netlify", "heroku", "华为云", "ucloud"],
+                "domains": ["azure.microsoft.com", "cloud.google.com", "vultr.com", "linode.com", "digitalocean.com", "vercel.com", "netlify.com", "heroku.com", "huaweicloud.com", "ucloud.cn"]
+            }
+        }
+    },
     "AI": {
         "keywords": ["ai", "gpt", "claude", "chatgpt", "openai", "anthropic", "perplexity", "llm", "人工智能", "机器学习", "gemini"],
         "domains": ["anthropic.com", "openai.com", "perplexity.ai", "siliconflow.cn", "aiagenttoolkit.xyz", "ctok.ai", "vercel.ai", "langfuse.com"],
