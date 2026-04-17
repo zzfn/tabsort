@@ -22,3 +22,10 @@ wheels/
 
 # IDE
 /.idea/
+
+# macOS
+.DS_Store
+
+# Go 编译产物
+/tabsort
+/tabsort.exe
